@@ -1,4 +1,5 @@
 # Install: pip install streamlit rembg Pillow
+import os
 import streamlit as st
 from rembg import remove
 from PIL import Image
@@ -6,10 +7,21 @@ from io import BytesIO
 
 # Configure the basic page settings
 st.set_page_config(
-    page_title="Photo Composer",
-    page_icon="✂️",
+    page_title="Travel Setu Virtual Darshan",
+    page_icon="assets/logo.png",
     layout="wide"
 )
+
+# Try to show a local logo if provided at assets/logo.png. If not present, the app will show the text title.
+logo_path = os.path.join(os.path.dirname(__file__), "assets", "logo.png")
+if os.path.exists(logo_path):
+    try:
+        logo_img = Image.open(logo_path)
+        # Show a small logo at the top of the app
+        st.image(logo_img, width=180)
+    except Exception:
+        # If logo fails to load, ignore and continue with textual title
+        pass
 
 # --- THE IMAGE PROCESSING LOGIC ---
 def composite_images_web(fg_file, bg_file, scale_factor):
@@ -57,18 +69,19 @@ def composite_images_web(fg_file, bg_file, scale_factor):
 
 # --- STREAMLIT APP LAYOUT AND UI ---
 
-st.title("✂️ Free Photo Background Swapper")
-st.markdown("Easily remove the background from one image and composite it onto another. The final image is saved as a JPEG.")
+st.title("Travel Setu Virtual Darshan")
+st.markdown("Easily remove the background from one image and composite it onto another. The final image is saved as a JPEG. Presented by Travel Setu.")
 
 st.divider()
 
-# Create two columns for a clean layout
-col1, col2 = st.columns([1, 2]) # col2 is twice as wide as col1
+# Create an outer 3-column layout and use the center column for the app content to visually center everything
+left_col, center_col, right_col = st.columns([1, 8, 1])
 
-with col1:
+with center_col:
+    # Centered header and subtitle
     st.header("1. Upload & Settings")
-    
-    # Upload Widgets
+
+    # Upload Widgets (centered because they're inside center_col)
     foreground_file = st.file_uploader(
         "**Upload your Foreground Photo (The Cutout)**", 
         type=['png', 'jpg', 'jpeg'],
@@ -92,36 +105,37 @@ with col1:
         help="Adjust the size of the foreground photo relative to its original size."
     )
 
-with col2:
+    st.markdown("---")
+
     st.header("2. Result & Download")
 
     if foreground_file and background_file:
-        
         # Show a progress spinner while processing
         with st.spinner('Processing image... This may take a moment to remove the background.'):
-            # Call the processing function
             output_image_io, error_message = composite_images_web(foreground_file, background_file, scale)
-            
+
         if output_image_io:
             st.success("✅ Success! Image ready for download.")
-            
+
+            # Display the image centered by using the center column width
             st.image(
                 output_image_io, 
                 caption=f"Final Composited Image (Scale Factor: {scale:.2f})", 
                 use_column_width=True
             )
-            
-            # Provide a clear download button
-            st.download_button(
-                label="⬇️ Download Composited Image (JPEG)",
-                data=output_image_io,
-                file_name="composited_result.jpg",
-                mime="image/jpeg",
-                type="primary" # Use the primary button style
-            )
-            
+
+            # Provide a centered download button by using an inner 3-column layout and placing the button in the middle
+            dl_left, dl_center, dl_right = st.columns([1, 2, 1])
+            with dl_center:
+                st.download_button(
+                    label="⬇️ Download Composited Image (JPEG)",
+                    data=output_image_io,
+                    file_name="composited_result.jpg",
+                    mime="image/jpeg",
+                    type="primary"
+                )
+
         elif error_message:
             st.error(f"Processing Failed: {error_message}")
-    
     else:
         st.info("Please upload both a Foreground Photo and a New Background Image to begin.")

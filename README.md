@@ -1,6 +1,6 @@
-# Photo Compositor - Streamlit App
+# Travel Setu Virtual Darshan - Streamlit App
 
-A web application that removes backgrounds from images and composites them onto new backgrounds.
+A web application that removes backgrounds from images and composites them onto new backgrounds. Presented by Travel Setu.
 
 ## Features
 
